@@ -1,12 +1,15 @@
-in import tkinter as tk
+import tkinter as tk
 from tkinter import messagebox
 from collections import defaultdict
+import datetime  # For appointment scheduling
+
 
 class Node:
     def __init__(self, data):
         self.data = data
         self.prev = None
         self.next = None
+
 
 class MyDeque:
     def __init__(self):
@@ -56,6 +59,7 @@ class MyDeque:
             self.head.prev = None
         return removed_data
 
+
 class Patient:
     def __init__(self, id, name, dob, medical_history):
         self.id = id
@@ -63,13 +67,16 @@ class Patient:
         self.dob = dob
         self.medical_history = medical_history
         self.appointments = []
+        self.doctor = None  # Link to assigned doctor
+
 
 class Doctor:
     def __init__(self, id, name, specialization):
         self.id = id
         self.name = name
         self.specialization = specialization
-        self.appointments = set()
+        self.appointments = []  # List of patient appointments
+
 
 class Prescription:
     def __init__(self, patient_id, doctor_id, medication):
@@ -77,17 +84,21 @@ class Prescription:
         self.doctor_id = doctor_id
         self.medication = medication
 
+
 patients = []
 doctors = []
-consultation_queue = MyDeque()
+consultation_queue = MyDeque()  # FIFO queue for consultation
 patient_records = {}
-doctor_records = defaultdict(set)
+doctor_records = defaultdict(list)  # List of appointments per doctor
 prescriptions = []
 
-def check_password(password):
-    return password == "x"
 
-class PatientRecordApp(tk.Tk):
+def check_password(password):
+    return password == "secure_password"  # Replace with stronger mechanism (e.g., hashing)
+
+
+class PatientRecordApp(tk.Tk):  # Define the class here
+
     def __init__(self):
         super().__init__()
         self.title("Patient Record Management System")
@@ -128,7 +139,8 @@ class PatientRecordApp(tk.Tk):
         self.button_update_patient.grid(row=3, column=1, pady=5)
         self.button_remove_patient = tk.Button(self, text="Remove Patient", command=self.remove_patient_record_gui)
         self.button_remove_patient.grid(row=5, column=1, pady=5)
-        self.button_schedule_appointment = tk.Button(self, text="Schedule Appointment", command=self.schedule_appointment)
+        self.button_schedule_appointment = tk.Button(self, text="Schedule Appointment",
+                                                     command=self.schedule_appointment)
         self.button_schedule_appointment.grid(row=7, column=1, pady=5)
         self.button_issue_prescription = tk.Button(self, text="Issue Prescription", command=self.issue_prescription)
         self.button_issue_prescription.grid(row=9, column=1, pady=5)
@@ -136,7 +148,7 @@ class PatientRecordApp(tk.Tk):
         self.button_search_patient.grid(row=10, column=1, pady=5)
 
     def check_password(self):
-        password_window = tk.Tk()
+        password_window = tk.Toplevel(self)
         password_window.title("Enter Password")
         password_window.geometry("200x100")
 
@@ -151,7 +163,6 @@ class PatientRecordApp(tk.Tk):
             if check_password(entered_password):
                 password_window.destroy()
                 self.create_widgets()
-                self.mainloop()
             else:
                 messagebox.showerror("Error", "Invalid password!")
 
@@ -185,6 +196,10 @@ class PatientRecordApp(tk.Tk):
         patient_id = self.entry_patient_id.get()
         if patient_id in patient_records:
             del patient_records[patient_id]
+            # Remove patient from doctor appointments (if assigned)
+            if patient_records[patient_id].doctor:
+                doctor_records[patient_records[patient_id].doctor.id].remove(
+                    (patient_id, patient_records[patient_id].doctor.id))
             print("Patient record removed successfully.")
         else:
             print("Patient not found.")
@@ -192,13 +207,32 @@ class PatientRecordApp(tk.Tk):
     def schedule_appointment(self):
         patient_id = self.entry_patient_id.get()
         doctor_id = self.entry_doctor_id.get()
+        appointment_date = self.get_appointment_date()  # Implement logic to get appointment date from GUI
+
         if patient_id in patient_records and doctor_id in doctor_records:
-            appointment = (patient_id, doctor_id)
-            patient_records[patient_id].appointments.append(appointment)
-            doctor_records[doctor_id].appointments.add(appointment)
-            print("Appointment scheduled successfully.")
+            appointment = (patient_id, doctor_id, appointment_date)
+            if self.is_appointment_available(doctor_id, appointment_date):  # Check doctor's schedule
+                patient_records[patient_id].appointments.append(appointment)
+                patient_records[patient_id].doctor = doctors[doctor_id]  # Assign doctor to patient
+                doctor_records[doctor_id].append(appointment)
+                print("Appointment scheduled successfully.")
+                consultation_queue.append(appointment)  # Add to consultation queue
+            else:
+                print("Doctor unavailable on selected date.")
         else:
             print("Patient or doctor not found.")
+
+    def get_appointment_date(self):
+        # Implement logic to retrieve appointment date from GUI elements (e.g., calendar widget)
+        # This could involve using datetime or a calendar library to ensure proper date format
+        pass
+
+    def is_appointment_available(self, doctor_id, appointment_date):
+        # Check doctor's appointments for conflicts with the requested date
+        for existing_appointment in doctor_records[doctor_id]:
+            if existing_appointment[2] == appointment_date:  # Check for matching date
+                return False  # Appointment already exists for doctor on that date
+        return True  # No conflicts found, appointment available
 
     def issue_prescription(self):
         patient_id = self.entry_patient_id.get()
@@ -215,17 +249,75 @@ class PatientRecordApp(tk.Tk):
         patient_id = self.entry_patient_id.get()
         if patient_id in patient_records:
             patient = patient_records[patient_id]
-            result = f"Name: {patient.name}\nDOB: {patient.dob}\nMedical History: {patient.medical_history}\n"
-            self.text_search_result.config(state=tk.NORMAL)
-            self.text_search_result.delete(1.0, tk.END)
-            self.text_search_result.insert(tk.END, result)
-            self.text_search_result.config(state=tk.DISABLED)
+            doctor = patient.doctor if patient.doctor else "Not assigned"
+            print(f"Patient ID: {patient.id}")
+            print(f"Name: {patient.name}")
+            print(f"Date of Birth: {patient.dob}")
+            print(f"Medical History: {patient.medical_history}")
+            print(f"Assigned Doctor: {doctor}")
         else:
             print("Patient not found.")
 
+    def sort_patients(self):
+        # Implement logic to sort patient records based on user selection (e.g., ID, name, admission date)
+        # This could involve using sorting algorithms (e.g., bubble sort, merge sort) or libraries like `sorted`
+        sort_option = self.get_sort_option()  # Implement logic to get sort option from GUI
+
+        if sort_option == "id":
+            sorted_patients = sorted(patients, key=lambda p: p.id)
+        elif sort_option == "name":
+            sorted_patients = sorted(patients, key=lambda p: p.name)
+        # Add more sorting options as needed
+        elif sort_option == "admission_date":
+            sorted_patients = sorted(patients, key=lambda p: p.admission_date)
+        # Add more sorting options as needed
+        else:
+            print("Invalid sort option.")
+            return
+
+        # Update patient records dictionary to reflect the sorted order
+        for i, patient in enumerate(sorted_patients):
+            patient_records[patient.id] = patient
+
+        print("Patients sorted successfully.")
+
+    def get_sort_option(self):
+        return "id"
+
+    def create_menu(self):
+        menu_bar = tk.Menu(self)
+
+        # File menu
+        file_menu = tk.Menu(menu_bar, tearoff=0)
+        file_menu.add_command(label="Exit", command=self.quit)
+        menu_bar.add_cascade(label="File", menu=file_menu)
+
+        # Patient Management menu
+        patient_menu = tk.Menu(menu_bar, tearoff=0)
+        patient_menu.add_command(label="Add Patient Record", command=self.add_patient_record)
+        patient_menu.add_command(label="Update Patient Record", command=self.update_patient_record_gui)
+        patient_menu.add_command(label="Remove Patient Record", command=self.remove_patient_record_gui)
+        patient_menu.add_command(label="Search Patient", command=self.search_patient)
+        patient_menu.add_command(label="Sort Patients", command=self.sort_patients)
+        menu_bar.add_cascade(label="Patient Management", menu=patient_menu)
+
+        # Appointment Management menu
+        appointment_menu = tk.Menu(menu_bar, tearoff=0)
+        appointment_menu.add_command(label="Schedule Appointment", command=self.schedule_appointment)
+        menu_bar.add_cascade(label="Appointment Management", menu=appointment_menu)
+
+        # Prescription Management menu
+        prescription_menu = tk.Menu(menu_bar, tearoff=0)
+        prescription_menu.add_command(label="Issue Prescription", command=self.issue_prescription)
+        menu_bar.add_cascade(label="Prescription Management", menu=prescription_menu)
+
+        self.config(menu=menu_bar)
+
+    def main(self):
+        self.create_menu()  # Create the menu before main loop
+        self.mainloop()
+
+
 if __name__ == "__main__":
     app = PatientRecordApp()
-
-
-
-
+    app.main()
