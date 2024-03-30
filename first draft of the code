@@ -1,0 +1,231 @@
+in import tkinter as tk
+from tkinter import messagebox
+from collections import defaultdict
+
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.prev = None
+        self.next = None
+
+class MyDeque:
+    def __init__(self):
+        self.head = None
+        self.tail = None
+
+    def isEmpty(self):
+        return self.head is None
+
+    def append(self, data):
+        new_node = Node(data)
+        if self.isEmpty():
+            self.head = self.tail = new_node
+        else:
+            self.tail.next = new_node
+            new_node.prev = self.tail
+            self.tail = new_node
+
+    def appendleft(self, data):
+        new_node = Node(data)
+        if self.isEmpty():
+            self.head = self.tail = new_node
+        else:
+            new_node.next = self.head
+            self.head.prev = new_node
+            self.head = new_node
+
+    def pop(self):
+        if self.isEmpty():
+            return None
+        removed_data = self.tail.data
+        if self.head == self.tail:
+            self.head = self.tail = None
+        else:
+            self.tail = self.tail.prev
+            self.tail.next = None
+        return removed_data
+
+    def popleft(self):
+        if self.isEmpty():
+            return None
+        removed_data = self.head.data
+        if self.head == self.tail:
+            self.head = self.tail = None
+        else:
+            self.head = self.head.next
+            self.head.prev = None
+        return removed_data
+
+class Patient:
+    def __init__(self, id, name, dob, medical_history):
+        self.id = id
+        self.name = name
+        self.dob = dob
+        self.medical_history = medical_history
+        self.appointments = []
+
+class Doctor:
+    def __init__(self, id, name, specialization):
+        self.id = id
+        self.name = name
+        self.specialization = specialization
+        self.appointments = set()
+
+class Prescription:
+    def __init__(self, patient_id, doctor_id, medication):
+        self.patient_id = patient_id
+        self.doctor_id = doctor_id
+        self.medication = medication
+
+patients = []
+doctors = []
+consultation_queue = MyDeque()
+patient_records = {}
+doctor_records = defaultdict(set)
+prescriptions = []
+
+def check_password(password):
+    return password == "x"
+
+class PatientRecordApp(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Patient Record Management System")
+        self.geometry("800x600")
+
+        if not self.check_password():
+            return
+
+        self.create_widgets()
+
+    def create_widgets(self):
+        self.label_patient_id = tk.Label(self, text="Patient ID:")
+        self.label_patient_id.grid(row=0, column=0, pady=5)
+        self.label_update_info = tk.Label(self, text="Update Info:")
+        self.label_update_info.grid(row=2, column=0, pady=5)
+        self.label_doctor_id = tk.Label(self, text="Doctor ID:")
+        self.label_doctor_id.grid(row=4, column=0, pady=5)
+        self.label_medication = tk.Label(self, text="Medication:")
+        self.label_medication.grid(row=6, column=0, pady=5)
+        self.label_search_result = tk.Label(self, text="Search Result:")
+        self.label_search_result.grid(row=8, column=0, pady=5)
+
+        self.entry_patient_id = tk.Entry(self)
+        self.entry_patient_id.grid(row=0, column=1, padx=5)
+        self.entry_update_info = tk.Entry(self)
+        self.entry_update_info.grid(row=2, column=1, padx=5)
+        self.entry_doctor_id = tk.Entry(self)
+        self.entry_doctor_id.grid(row=4, column=1, padx=5)
+        self.entry_medication = tk.Entry(self)
+        self.entry_medication.grid(row=6, column=1, padx=5)
+
+        self.text_search_result = tk.Text(self, width=50, height=10, state=tk.DISABLED)
+        self.text_search_result.grid(row=8, columnspan=2, padx=5)
+
+        self.button_add_patient = tk.Button(self, text="Add Patient", command=self.add_patient_record)
+        self.button_add_patient.grid(row=1, column=1, pady=5)
+        self.button_update_patient = tk.Button(self, text="Update Patient", command=self.update_patient_record_gui)
+        self.button_update_patient.grid(row=3, column=1, pady=5)
+        self.button_remove_patient = tk.Button(self, text="Remove Patient", command=self.remove_patient_record_gui)
+        self.button_remove_patient.grid(row=5, column=1, pady=5)
+        self.button_schedule_appointment = tk.Button(self, text="Schedule Appointment", command=self.schedule_appointment)
+        self.button_schedule_appointment.grid(row=7, column=1, pady=5)
+        self.button_issue_prescription = tk.Button(self, text="Issue Prescription", command=self.issue_prescription)
+        self.button_issue_prescription.grid(row=9, column=1, pady=5)
+        self.button_search_patient = tk.Button(self, text="Search Patient", command=self.search_patient)
+        self.button_search_patient.grid(row=10, column=1, pady=5)
+
+    def check_password(self):
+        password_window = tk.Tk()
+        password_window.title("Enter Password")
+        password_window.geometry("200x100")
+
+        password_label = tk.Label(password_window, text="Password:")
+        password_label.pack(pady=5)
+
+        password_entry = tk.Entry(password_window, show="*")
+        password_entry.pack(pady=5)
+
+        def check_and_close(event=None):
+            entered_password = password_entry.get()
+            if check_password(entered_password):
+                password_window.destroy()
+                self.create_widgets()
+                self.mainloop()
+            else:
+                messagebox.showerror("Error", "Invalid password!")
+
+        password_window.bind("<Return>", check_and_close)
+        button_check = tk.Button(password_window, text="Check", command=check_and_close)
+        button_check.pack(pady=5)
+
+        password_window.mainloop()
+        return True
+
+    def add_patient_record(self):
+        patient_id = self.entry_patient_id.get()
+        name = input("Enter Patient Name: ")
+        dob = input("Enter Date of Birth (YYYY-MM-DD): ")
+        medical_history = input("Enter Medical History: ")
+        new_patient = Patient(patient_id, name, dob, medical_history)
+        patients.append(new_patient)
+        patient_records[patient_id] = new_patient
+        print("Patient record added successfully.")
+
+    def update_patient_record_gui(self):
+        patient_id = self.entry_patient_id.get()
+        update_info = self.entry_update_info.get()
+        if patient_id in patient_records:
+            patient_records[patient_id].medical_history = update_info
+            print("Patient record updated successfully.")
+        else:
+            print("Patient not found.")
+
+    def remove_patient_record_gui(self):
+        patient_id = self.entry_patient_id.get()
+        if patient_id in patient_records:
+            del patient_records[patient_id]
+            print("Patient record removed successfully.")
+        else:
+            print("Patient not found.")
+
+    def schedule_appointment(self):
+        patient_id = self.entry_patient_id.get()
+        doctor_id = self.entry_doctor_id.get()
+        if patient_id in patient_records and doctor_id in doctor_records:
+            appointment = (patient_id, doctor_id)
+            patient_records[patient_id].appointments.append(appointment)
+            doctor_records[doctor_id].appointments.add(appointment)
+            print("Appointment scheduled successfully.")
+        else:
+            print("Patient or doctor not found.")
+
+    def issue_prescription(self):
+        patient_id = self.entry_patient_id.get()
+        doctor_id = self.entry_doctor_id.get()
+        medication = self.entry_medication.get()
+        if patient_id in patient_records and doctor_id in doctor_records:
+            prescription = Prescription(patient_id, doctor_id, medication)
+            prescriptions.append(prescription)
+            print("Prescription issued successfully.")
+        else:
+            print("Patient or doctor not found.")
+
+    def search_patient(self):
+        patient_id = self.entry_patient_id.get()
+        if patient_id in patient_records:
+            patient = patient_records[patient_id]
+            result = f"Name: {patient.name}\nDOB: {patient.dob}\nMedical History: {patient.medical_history}\n"
+            self.text_search_result.config(state=tk.NORMAL)
+            self.text_search_result.delete(1.0, tk.END)
+            self.text_search_result.insert(tk.END, result)
+            self.text_search_result.config(state=tk.DISABLED)
+        else:
+            print("Patient not found.")
+
+if __name__ == "__main__":
+    app = PatientRecordApp()
+
+
+
+
