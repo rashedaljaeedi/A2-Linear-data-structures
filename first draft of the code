@@ -78,13 +78,15 @@ class MyDeque:
 
 
 class Patient:
-    def __init__(self, id, name, dob, medical_history):
+    def __init__(self, id, name, dob, medical_history, medical_condition, date_of_admission):
         self.id = id
         self.name = name
         self.dob = dob
         self.medical_history = medical_history
+        self.medical_condition = medical_condition  # New attribute
+        self.date_of_admission = date_of_admission  # New attribute
         self.appointments = []
-        self.doctor = None  # Link to assigned doctor
+        self.doctor = None  # Assuming you want to keep track of the doctor assigned to the patient
 
 
 class Doctor:
@@ -186,6 +188,21 @@ class PatientRecordApp(tk.Tk):  # Define the class here
                                                      command=self.process_next_patient)
         self.button_process_next_patient.grid(row=16, column=1, pady=5)  # Adjust the row as needed
 
+        self.button_remove_first_patient = tk.Button(self, text="Remove First Patient from Queue",
+                                                     command=self.remove_first_patient_from_queue)
+        self.button_remove_first_patient.grid(row=17, column=1, pady=5)  # Adjust the row index as needed
+
+        self.label_medical_condition = tk.Label(self, text="Medical Condition:")
+        self.label_medical_condition.grid(row=4, column=0, pady=5)
+        self.entry_medical_condition = tk.Entry(self)
+        self.entry_medical_condition.grid(row=4, column=1, padx=5)
+
+        self.label_date_of_admission = tk.Label(self, text="Date of Admission (YYYY-MM-DD):")
+        self.label_date_of_admission.grid(row=5, column=0, pady=5)
+        self.entry_date_of_admission = tk.Entry(self)
+        self.entry_date_of_admission.grid(row=5, column=1, padx=5)
+
+        # Patient ID
         self.label_patient_id.grid(row=0, column=0, pady=5)
         self.entry_patient_id.grid(row=0, column=1, padx=5)
 
@@ -201,39 +218,62 @@ class PatientRecordApp(tk.Tk):  # Define the class here
         self.label_patient_medical_history.grid(row=3, column=0, pady=5)
         self.entry_patient_medical_history.grid(row=3, column=1, padx=5)
 
+        # Medical Condition
+        self.label_medical_condition.grid(row=4, column=0, pady=5)
+        self.entry_medical_condition.grid(row=4, column=1, padx=5)
+
+        # Date of Admission
+        self.label_date_of_admission.grid(row=5, column=0, pady=5)
+        self.entry_date_of_admission.grid(row=5, column=1, padx=5)
+
         # Add Patient Button
-        self.button_add_patient.grid(row=4, column=1, pady=5)
+        self.button_add_patient.grid(row=6, column=1, pady=5)
 
         # Update Info
-        self.label_update_info.grid(row=5, column=0, pady=5)
-        self.entry_update_info.grid(row=5, column=1, padx=5)
+        self.label_update_info.grid(row=7, column=0, pady=5)
+        self.entry_update_info.grid(row=7, column=1, padx=5)
 
         # Update Patient Button
-        self.button_update_patient.grid(row=6, column=1, pady=5)
-
-        # Remove Patient Button - Changed column for better layout
-        self.button_remove_patient.grid(row=6, column=2, pady=5)
+        self.button_update_patient.grid(row=8, column=1, pady=5)
 
         # Doctor ID
-        self.label_doctor_id.grid(row=7, column=0, pady=5)
-        self.entry_doctor_id.grid(row=7, column=1, padx=5)
+        self.label_doctor_id.grid(row=9, column=0, pady=5)
+        self.entry_doctor_id.grid(row=9, column=1, padx=5)
 
-        # Schedule Appointment Button - Adjusted to ensure clear separation from other inputs
-        self.button_schedule_appointment.grid(row=8, column=1, pady=5)
+        # Appointment Date - Moved under Doctor ID
+        self.label_appointment_date.grid(row=10, column=0, pady=5)
+        self.entry_appointment_date.grid(row=10, column=1, padx=5)
+
+        # Schedule Appointment Button - Adjusted to follow Appointment Date
+        self.button_schedule_appointment.grid(row=11, column=1, pady=5)
 
         # Medication
-        self.label_medication.grid(row=9, column=0, pady=5)
-        self.entry_medication.grid(row=9, column=1, padx=5)
+        self.label_medication.grid(row=12, column=0, pady=5)
+        self.entry_medication.grid(row=12, column=1, padx=5)
 
-        # Issue Prescription Button - Moved down for consistency
-        self.button_issue_prescription.grid(row=10, column=1, pady=5)
+        # Issue Prescription Button
+        self.button_issue_prescription.grid(row=13, column=1, pady=5)
 
-        # Search Result Label and Text
-        self.label_search_result.grid(row=11, column=0, pady=5)
-        self.text_search_result.grid(row=12, column=0, columnspan=2, padx=5, pady=5)
+        # Search Patient Button - Moved to new position
+        self.button_search_patient.grid(row=14, column=1, pady=5)
+        self.button_search_patient = tk.Button(self, text="Search Patient", command=self.search_patient)
+        self.button_search_patient.grid(row=15, column=1, pady=5)
 
-        # Search Patient Button - Adjusted row index
-        self.button_search_patient.grid(row=13, column=1, pady=5)
+        # Search Result Label and Text - Adjusted to follow Search Patient Button
+        self.label_search_result.grid(row=15, column=0, pady=5)
+        self.text_search_result.grid(row=16, column=0, columnspan=2, padx=5, pady=5)
+
+        # Consultation Queue Label and Listbox
+        self.label_consultation_queue.grid(row=17, column=0, pady=5)
+        self.listbox_consultation_queue.grid(row=18, column=0, columnspan=2, padx=5, sticky="ew")
+
+        # Process Next Patient Button
+        self.button_process_next_patient.grid(row=19, column=1, pady=5)
+
+        # Button to Remove First Patient from Queue
+        self.button_remove_first_patient.grid(row=20, column=1, pady=5)
+
+
 
     def check_password(self):
         password_window = tk.Toplevel(self)
@@ -261,15 +301,16 @@ class PatientRecordApp(tk.Tk):  # Define the class here
         password_window.mainloop()
         return True
 
-
     def add_patient_record(self):
-        # Assuming you've added Entry widgets for name, dob, and medical history
         patient_id = self.entry_patient_id.get()
-        name = self.entry_patient_name.get()  # Add this Entry widget
-        dob = self.entry_patient_dob.get()  # Add this Entry widget
-        medical_history = self.entry_patient_medical_history.get()  # Add this Entry widget
-        if patient_id and name and dob and medical_history:
-            new_patient = Patient(patient_id, name, dob, medical_history)
+        name = self.entry_patient_name.get()
+        dob = self.entry_patient_dob.get()
+        medical_history = self.entry_patient_medical_history.get()
+        medical_condition = self.entry_medical_condition.get()  # New detail
+        date_of_admission = self.entry_date_of_admission.get()  # New detail
+
+        if patient_id and name and dob and medical_history and medical_condition and date_of_admission:
+            new_patient = Patient(patient_id, name, dob, medical_history, medical_condition, date_of_admission)
             patients.append(new_patient)
             patient_records[patient_id] = new_patient
             messagebox.showinfo("Success", "Patient record added successfully.")
@@ -339,6 +380,14 @@ class PatientRecordApp(tk.Tk):  # Define the class here
                 display_text = "Last: " + display_text
 
             self.listbox_consultation_queue.insert(tk.END, display_text)
+
+    def remove_first_patient_from_queue(self):
+        if not consultation_queue.isEmpty():
+            removed_patient_id = consultation_queue.popleft()  # Remove the first patient in the queue
+            messagebox.showinfo("Queue Update", f"Patient {removed_patient_id} has been removed from the queue.")
+            self.update_consultation_queue_display()  # Refresh the Listbox display to reflect the updated queue
+        else:
+            messagebox.showerror("Queue Empty", "There are no patients in the queue.")
     def get_appointment_date(self):
         return self.entry_appointment_date.get()
     def issue_prescription(self):
@@ -373,14 +422,40 @@ class PatientRecordApp(tk.Tk):  # Define the class here
         # If the date is not taken, return True
         return True
 
+    def issue_prescription(self):
+        # Ensure IDs are trimmed and formatted consistently
+        patient_id = self.entry_patient_id.get().strip()
+        doctor_id = self.entry_doctor_id.get().strip()
+        medication = self.entry_medication.get().strip()
+
+        # Example validation and addition to the list
+        if patient_id in patient_records:
+            new_prescription = Prescription(patient_id, doctor_id, medication)
+            prescriptions.append(new_prescription)
+            messagebox.showinfo("Success", "Prescription issued to " + patient_records[patient_id].name)
+        else:
+            messagebox.showerror("Error", "Patient ID not found.")
+
     def search_patient(self):
-        patient_id = self.entry_patient_id.get()
+        patient_id = self.entry_patient_id.get().strip()  # Consistent ID formatting
         if patient_id in patient_records:
             patient = patient_records[patient_id]
-            result = f"ID: {patient.id}\nName: {patient.name}\nDOB: {patient.dob}\nMedical History: {patient.medical_history}"
+            medications = [prescription.medication for prescription in prescriptions if
+                           prescription.patient_id == patient_id]
+
+            medications_str = ", ".join(medications) if medications else "No medications found"
+
+            # Include the compiled medications list in the search result
+            search_result = (f"Patient ID: {patient.id}\n"
+                             f"Name: {patient.name}\n"
+                             f"Date of Birth: {patient.dob}\n"
+                             f"Medical History: {patient.medical_history}\n"
+                             f"Medical Condition: {patient.medical_condition}\n"
+                             f"Date of Admission: {patient.date_of_admission}\n"
+                             f"Medications: {medications_str}")
             self.text_search_result.config(state=tk.NORMAL)
             self.text_search_result.delete(1.0, tk.END)
-            self.text_search_result.insert(tk.END, result)
+            self.text_search_result.insert(tk.END, search_result)
             self.text_search_result.config(state=tk.DISABLED)
         else:
             messagebox.showerror("Error", "Patient not found.")
