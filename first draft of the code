@@ -188,9 +188,6 @@ class PatientRecordApp(tk.Tk):  # Define the class here
                                                      command=self.process_next_patient)
         self.button_process_next_patient.grid(row=16, column=1, pady=5)  # Adjust the row as needed
 
-        self.button_remove_first_patient = tk.Button(self, text="Remove First Patient from Queue",
-                                                     command=self.remove_first_patient_from_queue)
-        self.button_remove_first_patient.grid(row=17, column=1, pady=5)  # Adjust the row index as needed
 
         self.label_medical_condition = tk.Label(self, text="Medical Condition:")
         self.label_medical_condition.grid(row=4, column=0, pady=5)
