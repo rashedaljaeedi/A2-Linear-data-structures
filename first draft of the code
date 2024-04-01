@@ -269,9 +269,6 @@ class PatientRecordApp(tk.Tk):  # Define the class here
         self.button_process_next_patient.grid(row=19, column=1, pady=5)
 
         # Button to Remove First Patient from Queue
-        self.button_remove_first_patient.grid(row=20, column=1, pady=5)
-
-
 
     def check_password(self):
         password_window = tk.Toplevel(self)
@@ -393,13 +390,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
 
             self.listbox_consultation_queue.insert(tk.END, display_text)
 
-    def remove_first_patient_from_queue(self):
-        if not consultation_queue.isEmpty():
-            removed_patient_id = consultation_queue.popleft()  # Remove the first patient in the queue
-            messagebox.showinfo("Queue Update", f"Patient {removed_patient_id} has been removed from the queue.")
-            self.update_consultation_queue_display()  # Refresh the Listbox display to reflect the updated queue
-        else:
-            messagebox.showerror("Queue Empty", "There are no patients in the queue.")
+
     def get_appointment_date(self):
         return self.entry_appointment_date.get()
     def issue_prescription(self):
