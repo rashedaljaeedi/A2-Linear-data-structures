@@ -3,14 +3,14 @@ from tkinter import messagebox
 from collections import defaultdict
 import datetime  # For appointment scheduling
 
-
+# Define a Node class for creating doubly linked list nodes
 class Node:
     def __init__(self, data):
         self.data = data
         self.prev = None
         self.next = None
 
-
+# Define a deque data structure using doubly linked list
 class MyDeque:
     def __init__(self):
         self.head = None
@@ -18,16 +18,16 @@ class MyDeque:
         self.count = 0
 
     # Existing methods like isEmpty, append, appendleft, pop, popleft...
-
+ # Iterator to traverse the deque
     def __iter__(self):
         current = self.head
         while current:
             yield current.data
             current = current.next
-
+ # Check if deque is empty
     def isEmpty(self):
         return self.head is None
-
+ # Append an element to the right end of deque
     def append(self, data):
         new_node = Node(data)
         if self.isEmpty():
@@ -37,7 +37,7 @@ class MyDeque:
             new_node.prev = self.tail
             self.tail = new_node
         self.count += 1
-
+# Append an element to the left end of deque
     def appendleft(self, data):
         new_node = Node(data)
         if self.isEmpty():
@@ -48,7 +48,7 @@ class MyDeque:
             self.head = new_node
         self.count += 1
 
-
+    # Remove and return the rightmost element from deque
     def pop(self):
         if self.isEmpty():
             return None
@@ -60,7 +60,7 @@ class MyDeque:
             self.tail = self.tail.prev
             self.tail.next = None
         return removed_data
-
+ # Remove and return the leftmost element from deque
     def popleft(self):
         if self.isEmpty():
             return None
@@ -72,22 +72,23 @@ class MyDeque:
             self.head = self.head.next
             self.head.prev = None
         return removed_data
-
+    # Return the length of deque
     def __len__(self):
         return self.count
 
-
+# Define a class for representing Patient objects
 class Patient:
     def __init__(self, id, name, dob, medical_history, medical_condition, date_of_admission):
         self.id = id
         self.name = name
         self.dob = dob
         self.medical_history = medical_history
-        self.medical_condition = medical_condition  # New attribute
-        self.date_of_admission = date_of_admission  # New attribute
+        self.medical_condition = medical_condition  
+        self.date_of_admission = date_of_admission  
         self.appointments = []
         self.doctor = None  # Assuming you want to keep track of the doctor assigned to the patient
 
+# Define a class for representing Doctor objects
 
 class Doctor:
     def __init__(self, id, name, specialization):
@@ -96,13 +97,14 @@ class Doctor:
         self.specialization = specialization
         self.appointments = []  # List of patient appointments
 
-
+# Define a class for representing Prescription objects
 class Prescription:
     def __init__(self, patient_id, doctor_id, medication):
         self.patient_id = patient_id
         self.doctor_id = doctor_id
         self.medication = medication
 
+# Initialize empty lists and dictionaries for storing patient, doctor, and appointment records
 
 patients = []
 doctors = []
@@ -111,18 +113,18 @@ patient_records = {}
 doctor_records = defaultdict(list)  # List of appointments per doctor
 prescriptions = []
 
-
+# Function to check password validity
 def check_password(password):
-    return password == "secure_password"  # Replace with stronger mechanism (e.g., hashing)
+    return password == "secure_password"  
 
-
+# Define the main application class inheriting from tkinter's Tk class
 class PatientRecordApp(tk.Tk):  # Define the class here
-
+ # Initialize the application
     def __init__(self):
         super().__init__()
         self.title("Patient Record Management System")
         self.geometry("800x600")
-
+ # Predefine a doctor and add to the doctor list
         preset_doctor = Doctor(id="D001", name="Dr. Smith", specialization="General")
         doctors.append(preset_doctor)  # Add to the list of doctors
         doctor_records[preset_doctor.id] = []  # Initialize appointment list for this doctor
@@ -131,7 +133,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
             return
 
         self.create_widgets()
-
+    # Function to create GUI widgets
     def create_widgets(self):
         self.label_patient_id = tk.Label(self, text="Patient ID:")
         self.entry_patient_id = tk.Entry(self)
@@ -269,8 +271,8 @@ class PatientRecordApp(tk.Tk):  # Define the class here
         self.button_process_next_patient.grid(row=19, column=1, pady=5)
 
         # Button to Remove First Patient from Queue
-
-    def check_password(self):
+     # Function to check password input using a pop-up window
+    def check_password(self):         # Password validation window
         password_window = tk.Toplevel(self)
         password_window.title("Enter Password")
         password_window.geometry("200x100")
@@ -280,7 +282,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
 
         password_entry = tk.Entry(password_window, show="*")
         password_entry.pack(pady=5)
-
+        # Check password function
         def check_and_close(event=None):
             entered_password = password_entry.get()
             if check_password(entered_password):
@@ -295,7 +297,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
 
         password_window.mainloop()
         return True
-
+    # Function to add a patient record
     def add_patient_record(self):
         patient_id = self.entry_patient_id.get()
         name = self.entry_patient_name.get()
@@ -311,7 +313,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
             messagebox.showinfo("Success", "Patient record added successfully.")
         else:
             messagebox.showerror("Error", "Please fill in all fields.")
-
+    # Function to update patient record
     def update_patient_record_gui(self):
         patient_id = self.entry_patient_id.get()
         update_info = self.entry_update_info.get()  # Assuming this is new medical history
@@ -320,7 +322,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
             messagebox.showinfo("Success", "Patient record updated successfully.")
         else:
             messagebox.showerror("Error", "Patient not found.")
-
+    # Function to remove patient record
     def remove_patient_record_gui(self):
         patient_id = self.entry_patient_id.get()
         if patient_id in patient_records:
@@ -328,7 +330,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
             messagebox.showinfo("Success", "Patient record removed successfully.")
         else:
             messagebox.showerror("Error", "Patient not found.")
-
+    # Function to remove patient from database
     def remove_patient_from_database(self):
         patient_id = self.entry_patient_id.get().strip()
         if patient_id in patient_records:
@@ -342,7 +344,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
             messagebox.showinfo("Success", f"Patient record with ID {patient_id} has been removed from the database.")
         else:
             messagebox.showerror("Error", "Patient ID not found.")
-
+    # Function to schedule appointment
     def schedule_appointment(self):
         patient_id = self.entry_patient_id.get()
         doctor_id = self.entry_doctor_id.get()
@@ -362,7 +364,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
                 messagebox.showerror("Error", "Doctor unavailable on selected date.")
         else:
             messagebox.showerror("Error", "Invalid patient or doctor ID.")
-
+    # Function to process next patient in consultation queue
     def process_next_patient(self):
         if not consultation_queue.isEmpty():
             patient_id = consultation_queue.popleft()  # Remove the next patient from the queue
@@ -370,7 +372,7 @@ class PatientRecordApp(tk.Tk):  # Define the class here
             # Your processing logic...
         else:
             messagebox.showerror("Queue Empty", "There are no patients in the queue.")
-
+    # Function to update consultation queue display
     def update_consultation_queue_display(self):
         self.listbox_consultation_queue.delete(0, tk.END)  # Clear current entries
 
@@ -517,12 +519,12 @@ class PatientRecordApp(tk.Tk):  # Define the class here
         menu_bar.add_cascade(label="Prescription Management", menu=prescription_menu)
 
         self.config(menu=menu_bar)
-
+    # Main function to start the application
     def main(self):
         self.create_menu()  # Create the menu before main loop
         self.mainloop()
 
-
+# Check if this script is run as the main module
 if __name__ == "__main__":
     app = PatientRecordApp()
     app.main()
